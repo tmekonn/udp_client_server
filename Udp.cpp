@@ -1,7 +1,7 @@
 #include "Udp.hpp"
 
 // UDP constructor: initialize member variables
-UDP::UDP(int p) : p_port(p), u_udp_fd(-1), u_started(false), u_local_address{}, u_remote_address{} {
+UDP::UDP(int p) : u_port(p), u_udp_fd(-1), u_started(false), u_local_address{}, u_remote_address{} {
 }
 
 UDP::~UDP(){
@@ -29,7 +29,7 @@ bool UDP::start(){
     memset(&u_local_address, 0, sizeof(u_local_address));
     u_local_address.sin_family = AF_INET;
     u_local_address.sin_addr.s_addr = INADDR_ANY;
-    u_local_address.sin_port = htons(p_port);
+    u_local_address.sin_port = htons(u_port);
 
     // bind the socket
     if (bind(u_udp_fd, (struct sockaddr *)&u_local_address, sizeof(u_local_address)) < 0){
@@ -45,6 +45,10 @@ bool UDP::start(){
 
 }
 
+bool UDP::isStarted(){
+    return u_started;
+}
+
 int UDP::receive(char *buf_p, int buf_len, struct sockaddr_in *remote_addr_p){
     
     socklen_t remote_len = sizeof(struct sockaddr_in); // initialize the length of the remote address
@@ -53,11 +57,20 @@ int UDP::receive(char *buf_p, int buf_len, struct sockaddr_in *remote_addr_p){
         return -1;
     }
 
-    // receive the packet
-    int n = recvfrom(u_udp_fd, buf_p, buf_len, 0, (struct sockaddr*)remote_addr_p, (socklen_t *)&remote_len);
+    // Receives packet in blocking mode (default).
+    int n = recvfrom(u_udp_fd, buf_p, buf_len, MSG_DONTWAIT, (struct sockaddr*)remote_addr_p, (socklen_t *)&remote_len);
     if (n < 0) {
-        std::cerr << "Receive failed" << std::endl;
-    }
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {   
+        //std::cout << "No data available, retrying..."<< std::endl;
+        return 0; // No data available. This doesn't normallr happen in UDP
+        }
+        else
+        {
+            std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
+            return -1;
+        }
+    } 
+    
 
     return n;
 }

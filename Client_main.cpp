@@ -1,36 +1,41 @@
 #include "Udp.hpp"
 #include <thread>
 #include <chrono>
-
-#define SERVER_PORT 8080
-#define CLIENT_PORT 9090
+#include "Common.hpp"
 
 int main(){
     
 
-    std::string server_ip = "127.0.0.1";
+   
     
     struct sockaddr_in server_addr;
     socklen_t server_addr_len = sizeof(server_addr);
 
-    UDP udp(CLIENT_PORT);
+    UDP udp(UE_PORT);
     udp.start();
 
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(SERVER_PORT);
+    server_addr.sin_port = htons(eNodeB_PORT);
 
-      if (inet_pton(AF_INET, server_ip.c_str(), &server_addr.sin_addr) <= 0){
+      if (inet_pton(AF_INET, eNodeB_ip.c_str(), &server_addr.sin_addr) <= 0){
         std::cerr << "Invalid address/ Address not supported" << std::endl;
         exit(EXIT_FAILURE);
     }  
 
     while(true){
         char message[] = "Hello from client";
-        int n = udp.send(message, sizeof(message), server_addr);
+        struct Request request;
+        struct Response response;
+        request.type = UPLINK;
+        request.ue_id = 1;
+        request.data_length = 5;
+
+        //e_udp.send((char *)response, response_len, ue_addr);  
+        int n = udp.send((char*)&request, sizeof(request), server_addr);
         
         if(n > 0){
-            std::cout << "Sent: " << message << std::endl;
+            std::cout << "[C]Sent: " << sizeof(request)<<" bytes"<< std::endl;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 

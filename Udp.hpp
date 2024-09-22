@@ -6,16 +6,44 @@
 #include <cstring>
 #include <unistd.h>
 
+
 class UDP {
     public:
+        /*!
+        * Constructor protoype
+        */
         UDP(int p);
+
+        /*
+        * Destructor prototype
+        */
         ~UDP();
+        /*
+        * start(): creates socket and binds it to port
+        */
         bool start();
+
+        /*!
+        * isStarted(): 
+        */
+        bool isStarted();
+
+        /*!
+        * receive(): receive packet from remote_addr
+        *
+        *  @param[in] buf_p     pointer to the buffer for the received data
+        */
         int receive(char *buf_p, int buf_len, struct sockaddr_in *remote_addr_p);
+        /*!
+        * send(): send packet to remote_addr
+        *
+        * @param[in] buf_p     pointer to the buffer for the data to be transmitted
+        * @param[in] buf_len   size of buffer containing the data to be transmitted 
+        */
         int send(char *buf_p, int buf_len, struct sockaddr_in remote_addr);
 
     private:
-        int p_port;
+        int u_port;
         int u_udp_fd; // file descriptor
         bool u_started;
         struct sockaddr_in u_local_address;

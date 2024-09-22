@@ -1,14 +1,14 @@
 CXX = g++
 CXXFLAGS = -std=c++11 -pthread
 
-all: server client
+all: enodeb client
 
-server: Udp.cpp Server_main.cpp
-	$(CXX) $(CXXFLAGS) -o server Udp.cpp Server_main.cpp
-client: Udp.cpp Client_main.cpp
-	$(CXX) $(CXXFLAGS) -o client Udp.cpp Client_main.cpp
+enodeb: Udp.cpp eNodeB_main.cpp
+	$(CXX) $(CXXFLAGS) -o enodeb Udp.cpp eNodeB.cpp eNodeB_main.cpp
+client: Udp.cpp UE.cpp UE_main.cpp
+	$(CXX) $(CXXFLAGS) -o client Udp.cpp UE.cpp UE_main.cpp
 
 
 
 clean:
-	rm -r server client
+	rm -r enodeb client 
