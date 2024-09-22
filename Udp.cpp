@@ -49,28 +49,37 @@ bool UDP::isStarted(){
     return u_started;
 }
 
-int UDP::receive(char *buf_p, int buf_len, struct sockaddr_in *remote_addr_p){
-    
+
+
+int UDP::receive(char *buf_p, int buf_len, struct sockaddr_in *remote_addr_p, int *err_code){
     socklen_t remote_len = sizeof(struct sockaddr_in); // initialize the length of the remote address
-    if(! u_started){
+    if(!u_started){
         std::cerr << "UDP not started" << std::endl;
         return -1;
     }
 
-    // Receives packet in blocking mode (default).
-    int n = recvfrom(u_udp_fd, buf_p, buf_len, MSG_DONTWAIT, (struct sockaddr*)remote_addr_p, (socklen_t *)&remote_len);
-    if (n < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {   
-        //std::cout << "No data available, retrying..."<< std::endl;
-        return 0; // No data available. This doesn't normallr happen in UDP
-        }
-        else
-        {
-            std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
-            return -1;
-        }
-    } 
-    
+    fd_set fds;
+    struct timeval tv;
+    int retval;
+
+    FD_ZERO(&fds);
+    FD_SET(u_udp_fd, &fds);
+
+    tv.tv_sec = 1; // 1 second timeout
+    tv.tv_usec = 0;
+
+    retval = select(u_udp_fd + 1, &fds, nullptr, nullptr, &tv);
+    if (retval == -1) {
+        std::cerr << "Select error." << std::endl;
+        *err_code = errno;
+        return -1;
+    } else if (retval == 0) {
+        *err_code = EAGAIN; // Timeout
+        return -1;
+    }
+
+    int n = recvfrom(u_udp_fd, buf_p, buf_len, 0, (struct sockaddr*)remote_addr_p, &remote_len);
+    *err_code = errno;
 
     return n;
 }
@@ -89,3 +98,7 @@ int UDP::send(char *buf_p, int buf_len, struct sockaddr_in remote_addr){
 
     return n;
 }
+
+/*int UDP::getSocketFd() const {
+    return u_udp_fd;
+}*/

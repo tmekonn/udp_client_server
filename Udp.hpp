@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <cstring>
+#include <cstddef>
 #include <unistd.h>
 
 
@@ -33,7 +34,7 @@ class UDP {
         *
         *  @param[in] buf_p     pointer to the buffer for the received data
         */
-        int receive(char *buf_p, int buf_len, struct sockaddr_in *remote_addr_p);
+        int receive(char *buf_p, int buf_len, struct sockaddr_in *remote_addr_p, int *err_code);
         /*!
         * send(): send packet to remote_addr
         *
@@ -41,6 +42,8 @@ class UDP {
         * @param[in] buf_len   size of buffer containing the data to be transmitted 
         */
         int send(char *buf_p, int buf_len, struct sockaddr_in remote_addr);
+
+        //int getSocketFd() const; 
 
     private:
         int u_port;

@@ -39,6 +39,7 @@ void UE::run(int L, int T, int m){
     }
 
     auto start_time = std::chrono::steady_clock::now();
+    int err_code = 0;
     while (true){
         auto current_time = std::chrono::steady_clock::now();
         auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time).count();
@@ -50,7 +51,7 @@ void UE::run(int L, int T, int m){
         this->u_udp.send((char*)&request, sizeof(request), eNodeB_addr);
 
         char response_buff[1024];
-        int n = this->u_udp.receive(response_buff, sizeof(response_buff), &eNodeB_addr);
+        int n = this->u_udp.receive(response_buff, sizeof(response_buff), &eNodeB_addr, &err_code);
         if(n > 0){
             struct Response *response = (struct Response *)response_buff;
             std::cout << "UE" << u_ue_id << " received response: " << response->success << std::endl;

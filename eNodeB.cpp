@@ -67,6 +67,7 @@ void eNodeB::start(){
 
     struct sockaddr_in ue_addr;
     int received = 0; // number of bytes received
+    int err_code = 0;
 
     if(!e_udp.start()){
         std::cout << "eNodeB failed to start UDP server."<< std::endl;
@@ -84,12 +85,17 @@ void eNodeB::start(){
     std::cout << "eNodeB waiting for request..." << std::endl;
     while(!eNodeB_stop){
 
-        received = e_udp.receive((char *)&request, request_len, &ue_addr);
+        received = e_udp.receive((char *)&request, request_len, &ue_addr, &err_code);
 
-        if (received == 0){
-            continue;
+     if (received < 0 && err_code == EINTR) {
+            std::cout << "KEYBOARD INTERRUPT" << std::endl;
+            eNodeB_stop = true;
+            break;
         }
 
+        if (received < 0 && err_code == EAGAIN) {
+            continue; // Timeout occurred, continue to check stop flag
+        }
         // check if we received a valid request data length
         if(received != request_len){
             std::cerr << "Received invalid request." << std::endl;
